@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نموذج حصر الدورات التدريبية</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --line: #d9e1ee;
+      --primary: #1f5eff;
+      --primary-dark: #1547c7;
+      --danger: #d92d20;
+      --success: #067647;
+      --shadow: 0 10px 30px rgba(18, 38, 63, 0.08);
+      --radius: 18px;
+      --warning-bg: #fff7e6;
+      --warning-border: #f5c46b;
+      --warning-text: #8a5a00;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Tahoma, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 32px));
+      margin: 32px auto 56px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1f5eff 0%, #4b7cff 100%);
+      color: #fff;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 { margin: 0 0 10px; font-size: 30px; }
+    .hero p { margin: 0; line-height: 1.8; opacity: 0.95; }
+
+    .meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      font-size: 13px;
+    }
+
+    .meta span {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .panel h2 { margin: 0 0 18px; font-size: 22px; }
+    .hint, .footer-note { color: var(--muted); font-size: 14px; line-height: 1.8; }
+
+    .notice {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      color: var(--warning-text);
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      line-height: 1.9;
+      font-size: 14px;
+    }
+
+    .notice strong { color: #6d4600; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label { font-weight: 700; font-size: 14px; }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid rgba(31,94,255,.15);
+      border-color: var(--primary);
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: #eef3ff; color: var(--primary); border: 1px solid #d9e4ff; }
+    .btn-danger { background: #fff2f1; color: var(--danger); border: 1px solid #ffd0cc; }
+
+    .course-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: #fbfcff;
+      margin-bottom: 14px;
+    }
+
+    .course-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .course-title h3 { margin: 0; font-size: 18px; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .note { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.7; }
+
+    .status {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      display: none;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.8;
+    }
+
+    .status.success { display: block; background: #ecfdf3; border: 1px solid #abefc6; color: var(--success); }
+    .status.error { display: block; background: #fef3f2; border: 1px solid #fecdca; color: var(--danger); }
+
+    .loading { opacity: .7; pointer-events: none; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+
+    .modal-backdrop.show { display: flex; }
+
+    .modal-box {
+      width: min(460px, 100%);
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+      padding: 28px 24px;
+      text-align: center;
+    }
+
+    .modal-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ecfdf3;
+      color: var(--success);
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    .modal-box h3 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .modal-box p {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.9;
+      font-size: 15px;
+    }
+
+    .modal-box .btn {
+      min-width: 120px;
+    }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 24px; }
+      .container { width: min(100% - 20px, 1100px); margin-top: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>نموذج حصر الدورات التدريبية للموظفين</h1>
+      <p>يُستخدم هذا النموذج لجمع بيانات الدورات التدريبية المسجلة للموظف، مع إرفاق شهادة كل دورة ضمن نفس البطاقة لضمان الربط الصحيح بين البيانات والملف.</p>
+      <div class="meta">
+        <span>الإصدار: 1.0.9</span>
+        <span>آخر تحديث: 2026-04-19</span>
+        <span>النوع: HTML + JavaScript</span>
+      </div>
+    </section>
+
+    <form id="trainingForm" class="panel" novalidate>
+      <h2>بيانات الموظف</h2>
+      <div class="notice">
+        <strong>تنبيه مهم:</strong><br>
+        - اسم الموظف حقل إلزامي.<br>
+        - الرقم الوظيفي والإدارة / القسم والمسمى الوظيفي والملاحظات الإضافية حقول اختيارية.<br>
+        - إذا كانت الشهادة <strong>غير مزودة سابقًا</strong> للموارد البشرية، يجب إرفاقها داخل نفس بطاقة الدورة.<br>
+        - الصيغ المسموحة للمرفقات: PDF / JPG / JPEG / PNG.
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="employeeName">اسم الموظف</label>
+          <input id="employeeName" name="employeeName" type="text" placeholder="مثال: عبدالعزيز اللهيم" required />
+        </div>
+        <div class="field">
+          <label for="employeeId">الرقم الوظيفي</label>
+          <input id="employeeId" name="employeeId" type="text" placeholder="مثال: 10245" />
+        </div>
+        <div class="field">
+          <label for="department">الإدارة / القسم</label>
+          <input id="department" name="department" type="text" placeholder="مثال: الموارد البشرية" />
+        </div>
+        <div class="field">
+          <label for="jobTitle">المسمى الوظيفي</label>
+          <input id="jobTitle" name="jobTitle" type="text" placeholder="مثال: أخصائي أول" />
+        </div>
+        <div class="field full">
+          <label for="notes">ملاحظات إضافية</label>
+          <textarea id="notes" name="notes" placeholder="أي معلومات إضافية، إن وجدت"></textarea>
+        </div>
+      </div>
+    </form>
+
+    <section class="panel">
+      <h2 style="margin:0 0 6px;">الدورات التدريبية</h2>
+      <div class="hint" style="margin:0 0 16px;">كل بطاقة تمثل دورة واحدة، ويجب استكمال حقولها كافة قبل الإرسال.</div>
+
+      <div id="coursesContainer"></div>
+
+      <div style="margin-top:16px; text-align:center;">
+        <button type="button" class="btn btn-primary" id="addCourseBtn">+ إضافة دورة جديدة</button>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-secondary" id="previewDataBtn">معاينة البيانات</button>
+        <button type="button" class="btn btn-primary" id="submitBtn">إرسال النموذج</button>
+      </div>
+
+      <div id="statusBox" class="status"></div>
+      <div class="footer-note" style="margin-top:16px;">بعد نجاح الإرسال سيتم تفريغ الحقول تلقائيًا وبدء نموذج جديد.</div>
+    </section>
+  </div>
+
+  <div id="successModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-icon">✓</div>
+      <h3>تم الإرسال بنجاح</h3>
+      <p>تم حفظ النموذج بنجاح، ويمكنك الآن تعبئة نموذج جديد إذا رغبت.</p>
+      <button type="button" class="btn btn-primary" id="successModalBtn">موافق</button>
+    </div>
+  </div>
+
+  <template id="courseTemplate">
+    <article class="course-card">
+      <div class="course-title">
+        <h3>دورة رقم <span class="course-number"></span></h3>
+        <button type="button" class="btn btn-danger remove-course">حذف الدورة</button>
+      </div>
+
+      <div class="grid">
+        <div class="field full">
+          <label>اسم البرنامج / الدورة / الشهادة</label>
+          <input type="text" class="course-name" placeholder="اكتب اسم البرنامج أو الدورة أو الشهادة" required />
+        </div>
+
+        <div class="field">
+          <label>نوع البرنامج</label>
+          <select class="course-program-type" required>
+            <option value="">اختر النوع</option>
+            <option>برنامج تدريبي</option>
+            <option>دورة تدريبية</option>
+            <option>شهادة احترافية</option>
+            <option>ورشة عمل</option>
+            <option>تدريب ذاتي</option>
+            <option>أخرى</option>
+          </select>
+        </div>
+        <div class="field course-program-type-other-field" style="display:none;">
+          <label>في حال اختيار أخرى - نوع البرنامج</label>
+          <input type="text" class="course-program-type-other" placeholder="اكتب النوع الآخر إن وجد" />
+        </div>
+
+        <div class="field">
+          <label>مجال البرنامج</label>
+          <select class="course-field" required>
+            <option value="">اختر المجال</option>
+            <option>إداري</option>
+            <option>قانوني / تشريعي</option>
+            <option>مالي</option>
+            <option>تقني</option>
+            <option>قيادي</option>
+            <option>مهاري</option>
+            <option>أخرى</option>
+          </select>
+        </div>
+        <div class="field course-field-other-field" style="display:none;">
+          <label>في حال اختيار أخرى - مجال البرنامج</label>
+          <input type="text" class="course-field-other" placeholder="اكتب المجال الآخر إن وجد" />
+        </div>
+
+        <div class="field">
+          <label>مدة البرنامج</label>
+          <select class="course-duration-unit" required>
+            <option value="">اختر الوحدة</option>
+            <option>يوم</option>
+            <option>ساعة</option>
+          </select>
+        </div>
+        <div class="field course-duration-value-field" style="display:none;">
+          <label>مدة الدورة</label>
+          <input type="text" class="course-duration-value" placeholder="اكتب المدة" />
+        </div>
+
+        <div class="field">
+          <label>تاريخ التنفيذ</label>
+          <input type="date" class="course-date" required />
+        </div>
+
+        <div class="field">
+          <label>مكان التنفيذ</label>
+          <select class="course-location" required>
+            <option value="">اختر المكان</option>
+            <option>داخل المملكة</option>
+            <option>خارج المملكة</option>
+          </select>
+        </div>
+        <div class="field course-location-detail-field" style="display:none;">
+          <label>اسم المدينة / الدولة</label>
+          <input type="text" class="course-location-detail" placeholder="اكتب اسم المدينة / الدولة" />
+        </div>
+
+        <div class="field">
+          <label>أسلوب التنفيذ</label>
+          <select class="course-delivery-mode" required>
+            <option value="">اختر الأسلوب</option>
+            <option>حضوري</option>
+            <option>عن بعد</option>
+            <option>مدمج</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label>الجهة المنفذة للبرنامج</label>
+          <input type="text" class="course-provider" placeholder="اكتب الجهة المنفذة" required />
+        </div>
+
+        <div class="field">
+          <label>مدى ارتباط البرنامج بمهام عملك الحالية</label>
+          <select class="course-relevance" required>
+            <option value="">اختر درجة الارتباط</option>
+            <option>مرتبط بشكل مباشر</option>
+            <option>مرتبط بشكل جزئي</option>
+            <option>غير مرتبط</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>هل تم تزويد الإدارة العامة للموارد البشرية بشهادة هذا البرنامج؟</label>
+          <select class="course-hr-provided" required>
+            <option value="">اختر</option>
+            <option>نعم</option>
+            <option>لا</option>
+          </select>
+        </div>
+
+        <div class="field full course-file-field" style="display:none;">
+          <label>إرفاق شهادة البرنامج</label>
+          <input type="file" class="course-file" accept=".pdf,.jpg,.jpeg,.png" />
+          <div class="note">في حال كانت الإجابة (لا)، نأمل تزويد الإدارة بالشهادة عبر إرفاقها أدناه.</div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCeoZjofQepyEXVwld-sxXPhKZKSdsbXm412fBdSNeOThs_eEh5KJ_FnDdjj_kRFt38w/exec';
+    const coursesContainer = document.getElementById('coursesContainer');
+    const addCourseBtn = document.getElementById('addCourseBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const previewDataBtn = document.getElementById('previewDataBtn');
+    const statusBox = document.getElementById('statusBox');
+    const courseTemplate = document.getElementById('courseTemplate');
+    const successModal = document.getElementById('successModal');
+    const successModalBtn = document.getElementById('successModalBtn');
+
+    function showStatus(message, type) {
+      statusBox.className = 'status ' + type;
+      statusBox.textContent = message;
+    }
+
+    function hideStatus() {
+      statusBox.className = 'status';
+      statusBox.textContent = '';
+    }
+
+    function openSuccessModal() {
+      successModal.classList.add('show');
+      successModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSuccessModal() {
+      successModal.classList.remove('show');
+      successModal.setAttribute('aria-hidden', 'true');
+    }
+
+    successModalBtn.addEventListener('click', closeSuccessModal);
+    successModal.addEventListener('click', (e) => {
+      if (e.target === successModal) closeSuccessModal();
+    });
+
+    function renumberCourses() {
+      const cards = coursesContainer.querySelectorAll('.course-card');
+      cards.forEach((card, index) => {
+        card.querySelector('.course-number').textContent = String(index + 1);
+      });
+    }
+
+    function toggleOtherField(selectElement, targetField, targetInput) {
+      const isOther = selectElement.value === 'أخرى';
+      targetField.style.display = isOther ? '' : 'none';
+      targetInput.required = isOther;
+      if (!isOther) targetInput.value = '';
+    }
+
+    function toggleFileField(hrProvidedSelect, fileField, fileInput) {
+      const shouldShow = hrProvidedSelect.value === 'لا';
+      fileField.style.display = shouldShow ? '' : 'none';
+      fileInput.required = shouldShow;
+      if (!shouldShow) fileInput.value = '';
+    }
+
+    function toggleSimpleRequiredField(selectElement, targetField, targetInput) {
+      const shouldShow = !!selectElement.value;
+      targetField.style.display = shouldShow ? '' : 'none';
+      targetInput.required = shouldShow;
+      if (!shouldShow) targetInput.value = '';
+    }
+
+    function createCourseCard() {
+      const fragment = courseTemplate.content.cloneNode(true);
+      const card = fragment.querySelector('.course-card');
+
+      const removeButton = card.querySelector('.remove-course');
+      const programTypeSelect = card.querySelector('.course-program-type');
+      const fieldSelect = card.querySelector('.course-field');
+      const durationUnitSelect = card.querySelector('.course-duration-unit');
+      const locationSelect = card.querySelector('.course-location');
+      const hrProvidedSelect = card.querySelector('.course-hr-provided');
+
+      const programTypeOtherField = card.querySelector('.course-program-type-other-field');
+      const programTypeOtherInput = card.querySelector('.course-program-type-other');
+      const fieldOtherField = card.querySelector('.course-field-other-field');
+      const fieldOtherInput = card.querySelector('.course-field-other');
+      const durationValueField = card.querySelector('.course-duration-value-field');
+      const durationValueInput = card.querySelector('.course-duration-value');
+      const locationDetailField = card.querySelector('.course-location-detail-field');
+      const locationDetailInput = card.querySelector('.course-location-detail');
+      const fileField = card.querySelector('.course-file-field');
+      const fileInput = card.querySelector('.course-file');
+
+      removeButton.addEventListener('click', () => {
+        card.remove();
+        renumberCourses();
+        if (!coursesContainer.querySelector('.course-card')) addCourseCard();
+      });
+
+      programTypeSelect.addEventListener('change', () => toggleOtherField(programTypeSelect, programTypeOtherField, programTypeOtherInput));
+      fieldSelect.addEventListener('change', () => toggleOtherField(fieldSelect, fieldOtherField, fieldOtherInput));
+      durationUnitSelect.addEventListener('change', () => toggleSimpleRequiredField(durationUnitSelect, durationValueField, durationValueInput));
+      locationSelect.addEventListener('change', () => toggleSimpleRequiredField(locationSelect, locationDetailField, locationDetailInput));
+      hrProvidedSelect.addEventListener('change', () => toggleFileField(hrProvidedSelect, fileField, fileInput));
+
+      toggleOtherField(programTypeSelect, programTypeOtherField, programTypeOtherInput);
+      toggleOtherField(fieldSelect, fieldOtherField, fieldOtherInput);
+      toggleSimpleRequiredField(durationUnitSelect, durationValueField, durationValueInput);
+      toggleSimpleRequiredField(locationSelect, locationDetailField, locationDetailInput);
+      toggleFileField(hrProvidedSelect, fileField, fileInput);
+
+      coursesContainer.appendChild(fragment);
+      renumberCourses();
+    }
+
+    function addCourseCard() {
+      createCourseCard();
+      hideStatus();
+    }
+
+    function resetFormCompletely() {
+      document.getElementById('employeeName').value = '';
+      document.getElementById('employeeId').value = '';
+      document.getElementById('department').value = '';
+      document.getElementById('jobTitle').value = '';
+      document.getElementById('notes').value = '';
+      coursesContainer.innerHTML = '';
+      addCourseCard();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function collectFormData() {
+      const employeeName = document.getElementById('employeeName').value.trim();
+      const employeeId = document.getElementById('employeeId').value.trim();
+      const department = document.getElementById('department').value.trim();
+      const jobTitle = document.getElementById('jobTitle').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+
+      const cards = [...coursesContainer.querySelectorAll('.course-card')];
+      const courses = cards.map((card, index) => ({
+        index: index + 1,
+        courseName: card.querySelector('.course-name').value.trim(),
+        programType: card.querySelector('.course-program-type').value,
+        programTypeOther: card.querySelector('.course-program-type-other').value.trim(),
+        field: card.querySelector('.course-field').value,
+        fieldOther: card.querySelector('.course-field-other').value.trim(),
+        date: card.querySelector('.course-date').value,
+        durationUnit: card.querySelector('.course-duration-unit').value,
+        durationValue: card.querySelector('.course-duration-value').value.trim(),
+        location: card.querySelector('.course-location').value,
+        locationDetail: card.querySelector('.course-location-detail').value.trim(),
+        deliveryMode: card.querySelector('.course-delivery-mode').value,
+        provider: card.querySelector('.course-provider').value.trim(),
+        relevance: card.querySelector('.course-relevance').value,
+        hrProvided: card.querySelector('.course-hr-provided').value,
+        file: card.querySelector('.course-file').files[0] || null,
+      }));
+
+      return { employee: { employeeName, employeeId, department, jobTitle, notes }, courses };
+    }
+
+    function validateData(data) {
+      if (!data.employee.employeeName) return 'يرجى استكمال اسم الموظف.';
+      if (!data.courses.length) return 'يرجى إضافة دورة واحدة على الأقل.';
+
+      for (const course of data.courses) {
+        if (!course.courseName || !course.programType || !course.field || !course.date || !course.durationUnit || !course.durationValue || !course.location || !course.locationDetail || !course.deliveryMode || !course.provider || !course.relevance || !course.hrProvided) {
+          return `يرجى استكمال جميع الحقول للدورة رقم ${course.index}.`;
+        }
+        if (course.programType === 'أخرى' && !course.programTypeOther) return `يرجى تعبئة حقل أخرى في نوع البرنامج للدورة رقم ${course.index}.`;
+        if (course.field === 'أخرى' && !course.fieldOther) return `يرجى تعبئة حقل أخرى في مجال البرنامج للدورة رقم ${course.index}.`;
+        if (course.hrProvided === 'لا' && !course.file) return `يرجى إرفاق شهادة الدورة رقم ${course.index}.`;
+      }
+      return null;
+    }
+
+    function previewData() {
+      const data = collectFormData();
+      const error = validateData(data);
+      if (error) {
+        showStatus(error, 'error');
+        return;
+      }
+      console.log('Preview Data:', data);
+      showStatus('تم تجهيز المعاينة بنجاح. افتح Console في المتصفح لمشاهدة البيانات الحالية.', 'success');
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          const base64 = result.includes(',') ? result.split(',')[1] : result;
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function submitForm() {
+      const data = collectFormData();
+      const error = validateData(data);
+
+      if (error) {
+        showStatus(error, 'error');
+        return;
+      }
+
+      try {
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        previewDataBtn.disabled = true;
+        addCourseBtn.disabled = true;
+        submitBtn.textContent = 'جاري الإرسال...';
+        showStatus('جاري تجهيز البيانات وإرسالها...', 'success');
+
+        const formData = new FormData();
+        formData.append('employeeName', data.employee.employeeName);
+        formData.append('employeeId', data.employee.employeeId);
+        formData.append('department', data.employee.department);
+        formData.append('jobTitle', data.employee.jobTitle);
+        formData.append('notes', data.employee.notes);
+        formData.append('coursesCount', String(data.courses.length));
+
+        for (let index = 0; index < data.courses.length; index += 1) {
+          const course = data.courses[index];
+          formData.append(`courses[${index}][courseName]`, course.courseName);
+          formData.append(`courses[${index}][programType]`, course.programType);
+          formData.append(`courses[${index}][programTypeOther]`, course.programTypeOther);
+          formData.append(`courses[${index}][field]`, course.field);
+          formData.append(`courses[${index}][fieldOther]`, course.fieldOther);
+          formData.append(`courses[${index}][date]`, course.date);
+          formData.append(`courses[${index}][durationUnit]`, course.durationUnit);
+          formData.append(`courses[${index}][durationValue]`, course.durationValue);
+          formData.append(`courses[${index}][location]`, course.location);
+          formData.append(`courses[${index}][locationDetail]`, course.locationDetail);
+          formData.append(`courses[${index}][deliveryMode]`, course.deliveryMode);
+          formData.append(`courses[${index}][provider]`, course.provider);
+          formData.append(`courses[${index}][relevance]`, course.relevance);
+          formData.append(`courses[${index}][hrProvided]`, course.hrProvided);
+
+          if (course.hrProvided === 'لا' && course.file) {
+            const fileBase64 = await fileToBase64(course.file);
+            formData.append(`courses[${index}][fileBase64]`, fileBase64);
+            formData.append(`courses[${index}][fileName]`, course.file.name || '');
+            formData.append(`courses[${index}][fileMimeType]`, course.file.type || '');
+          } else {
+            formData.append(`courses[${index}][fileBase64]`, '');
+            formData.append(`courses[${index}][fileName]`, '');
+            formData.append(`courses[${index}][fileMimeType]`, '');
+          }
+        }
+
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || 'تعذر إرسال النموذج.');
+        }
+
+        showStatus('تم إرسال النموذج بنجاح.', 'success');
+        resetFormCompletely();
+        openSuccessModal();
+      } catch (err) {
+        console.error(err);
+        showStatus(`حدث خطأ أثناء الإرسال: ${err.message || 'تعذر الإرسال'}`, 'error');
+      } finally {
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+        previewDataBtn.disabled = false;
+        addCourseBtn.disabled = false;
+        submitBtn.textContent = 'إرسال النموذج';
+      }
+    }
+
+    function runValidationTests() {
+      const validBase = {
+        employee: { employeeName: 'موظف تجريبي', employeeId: '', department: '', jobTitle: '', notes: '' },
+        courses: [{
+          index: 1,
+          courseName: 'دورة اختبار',
+          programType: 'برنامج تدريبي',
+          programTypeOther: '',
+          field: 'تقني',
+          fieldOther: '',
+          date: '2026-04-19',
+          durationUnit: 'يوم',
+          durationValue: 'أي قيمة',
+          location: 'داخل المملكة',
+          locationDetail: 'الرياض / المملكة العربية السعودية',
+          deliveryMode: 'حضوري',
+          provider: 'جهة تدريب',
+          relevance: 'مرتبط بشكل مباشر',
+          hrProvided: 'نعم',
+          file: null,
+        }],
+      };
+
+      console.assert(validateData(validBase) === null, 'Test 1 failed');
+      console.assert(validateData({ ...validBase, employee: { ...validBase.employee, employeeName: '' } }) === 'يرجى استكمال اسم الموظف.', 'Test 2 failed');
+      console.assert(validateData({ ...validBase, courses: [{ ...validBase.courses[0], field: 'أخرى', fieldOther: '' }] }) === 'يرجى تعبئة حقل أخرى في مجال البرنامج للدورة رقم 1.', 'Test 3 failed');
+      console.assert(validateData({ ...validBase, courses: [{ ...validBase.courses[0], hrProvided: 'لا', file: null }] }) === 'يرجى إرفاق شهادة الدورة رقم 1.', 'Test 4 failed');
+    }
+
+    addCourseBtn.addEventListener('click', addCourseCard);
+    submitBtn.addEventListener('click', submitForm);
+    previewDataBtn.addEventListener('click', previewData);
+
+    addCourseCard();
+    runValidationTests();
+  </script>
+</body>
+</html>
